@@ -12,7 +12,8 @@
 			"extensions": [
 				"mhutchie.git-graph",
 				"Codeium.codeium",
-				"oven.bun-vscode"
+				"oven.bun-vscode",
+				"YoavBls.pretty-ts-errors"
 			]
 		}
 	}
