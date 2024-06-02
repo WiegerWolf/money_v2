@@ -2,12 +2,37 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
-import initSqlJs, { Database } from 'sql.js'
+import { Database } from 'sql.js'
 
-const SQL = await initSqlJs({
-  locateFile: (file: string) => `./${file}`,
-});
-const db: Database = new SQL.Database();
+function loadBinaryFile(path: string) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", path, true);
+    xhr.responseType = "arraybuffer";
+    xhr.onload = function() {
+      const data = new Uint8Array(xhr.response);
+      const arr = [];
+      for(let i = 0; i != data.length; ++i) arr[i] = String.fromCharCode(data[i]);
+      resolve(arr.join(""));
+    };
+    xhr.onerror = function() {
+      reject(xhr);
+    };
+    xhr.send();
+  });
+}
+
+let db: Database;
+try {
+  const SQL = await window.initSqlJs({
+    locateFile: (file: string) => {
+      return `./${file}`
+    }
+  });
+  db = new SQL.Database();
+} catch (error) {
+  console.error(error);
+}
 
 function App() {
   const [count, setCount] = useState(0)
