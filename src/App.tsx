@@ -2,6 +2,12 @@ import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import initSqlJs, { Database } from 'sql.js'
+
+const SQL = initSqlJs({
+  locateFile: (file: string) => `./${file}`,
+});
+const db: Database = new SQL.Database();
 
 function App() {
   const [count, setCount] = useState(0)
