@@ -1,61 +1,41 @@
 import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema.ts';
 
-const {users} = schema
+const { users } = schema
 
 function App() {
   const [db, setDb] = useState<SQLJsDatabase<typeof schema>>()
   const [userList, setUsers] = useState<typeof users.$inferInsert[]>([])
 
   useEffect(() => {
-    (async () => {try {
+    (async () => {
       const SQL = await window.initSqlJs({
         locateFile: (file: string) => `/${file}`,
       });
-      const dbFile = await (await fetch('/db.sqlite')).arrayBuffer();
+      const dbFile = await (await fetch('/sqlite.db')).arrayBuffer();
       const sqldb = new SQL.Database(new Uint8Array(dbFile));
-      setDb(drizzle(sqldb, {schema}));
-    } catch (error) {
-      console.error(error);
-    }})().catch(console.error);
+      setDb(drizzle(sqldb, { schema }));
+    })().catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (db) {
+      db
+        .select()
+        .from(users)
+        .then(setUsers);
+    }
+  }, [db]);
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => {
-          db?.insert(users).values({name: 'John'});
-          console.log('add user');
-          }}>
-          add user
-        </button>
-        <button onClick={() => {
-          db?.select().from(users).then(users => {
-            setUsers(users); 
-            console.log('reload users');
-            console.log(users);
-          });
-          }}>
-          reload users
-        </button>
-        {userList.map(user => <p key={user.id}>{user.name}</p>)}
+        <ul>
+          {userList.map(user => <li key={user.id}>{user.name}</li>)}
+        </ul>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   )
 }
