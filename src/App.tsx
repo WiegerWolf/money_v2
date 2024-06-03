@@ -1,35 +1,33 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
-
-let db: SQLJsDatabase;
-try {
-  const SQL = await window.initSqlJs({
-    locateFile: (file: string) => `./${file}`,
-  });
-  const dbFile = (await fetch('/db.sqlite')).arrayBuffer();
-  const sqldb = new SQL.Database(dbFile);
-  db = drizzle(sqldb);
-} catch (error) {
-  console.error(error);
-}
+import * as schema from './schema.ts';
 
 function App() {
   const [count, setCount] = useState(0)
+  const [db, setDb] = useState<SQLJsDatabase>()
+
+  useEffect(() => {
+    (async () => {try {
+      const SQL = await window.initSqlJs({
+        locateFile: (file: string) => `/${file}`,
+      });
+      const dbFile = await (await fetch('/db.sqlite')).arrayBuffer();
+      const sqldb = new SQL.Database(new Uint8Array(dbFile));
+      setDb(drizzle(sqldb, {schema}));
+    } catch (error) {
+      console.error(error);
+    }})().catch(console.error);
+  }, []);
 
   if (!db) {
     return <p>Loading...</p>
   }
 
-  console.log(db)
-
-  // db.query('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)');
-  // db.query('INSERT INTO users (name) VALUES (?)', ['John']);
-  // db.query('INSERT INTO users (name) VALUES (?)', ['Jane']);
-
-  // console.log(db.select().from('users').all());
+  db.query.users.findMany()
+  .then(users => console.log(users))
 
   return (
     <>
