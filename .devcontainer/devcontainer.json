@@ -13,7 +13,9 @@
 				"mhutchie.git-graph",
 				"Codeium.codeium",
 				"oven.bun-vscode",
-				"YoavBls.pretty-ts-errors"
+				"YoavBls.pretty-ts-errors",
+				"qwtel.sqlite-viewer",
+				"actboy168.tasks"
 			]
 		}
 	}

@@ -3,13 +3,42 @@
 import os
 import subprocess
 import json
+import http.client
+from urllib.parse import urlparse
 
-API_KEY = os.getenv("GROQ_API_KEY", "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")
-API_URL = os.getenv("API_URL", "https://api.groq.com/openai")
-MODEL = os.getenv("MODEL", "llama3-70b-8192")
-
+# Default values
 DEFAULT_GIT_EMAIL = "you@example.com"
 DEFAULT_GIT_NAME = "Your Name"
+
+# Environment variables
+AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")  # Default to "groq" if not set
+
+# Groq AI Provider settings
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "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")
+GROQ_API_URL = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama3-70b-8192")
+
+# fn to get the default gateway IP (for use in determining the Ollama API URL)
+def get_default_gateway_ip():
+    command = "/sbin/ip route|awk '/default/ { print $3 }'"
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+    return result.stdout.strip()
+
+# Ollama AI Provider settings
+OLLAMA_API_URL = f"http://{get_default_gateway_ip()}:11434/v1/chat/completions"
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "codestral:22b-v0.1-q4_0")
+
+# Determine which API URL and model to use
+if AI_PROVIDER == "groq":
+    API_URL = GROQ_API_URL
+    API_KEY = GROQ_API_KEY
+    MODEL = GROQ_MODEL
+    USE_HTTPS = True
+else:
+    API_URL = OLLAMA_API_URL
+    API_KEY = None  # No API key needed for Ollama in the given example
+    MODEL = OLLAMA_MODEL
+    USE_HTTPS = False
 
 def get_diff(cached=True):
     command = ["git", "diff"]
@@ -39,25 +68,22 @@ def call_api(message):
         "messages": [{"role": "user", "content": message}],
         "model": MODEL,
     }
-    command = [
-        "curl",
-        "-X",
-        "POST",
-        f"{API_URL}/v1/chat/completions",
-        "-H",
-        f"Authorization: Bearer {API_KEY}",
-        "-H",
-        "Content-Type: application/json",
-        "-d",
-        json.dumps(data),
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        print(f"Error calling API: {result.stderr}")
+    headers = {
+        "Content-Type": "application/json",
+    }
+    if API_KEY:
+        headers["Authorization"] = f"Bearer {API_KEY}"
+    
+    url = urlparse(API_URL)
+    conn = http.client.HTTPSConnection(url.netloc) if USE_HTTPS else http.client.HTTPConnection(url.netloc)
+    conn.request("POST", url.path, body=json.dumps(data), headers=headers)
+    response = conn.getresponse()
+    if response.status != 200:
+        print(f"Error calling API: {response.read().decode()}")
         exit(1)
 
-    response_data = json.loads(result.stdout)
-    return response_data["choices"][0]["message"]["content"]
+    response_data = json.loads(response.read().decode())
+    return response_data["choices"][0]["message"]["content"].strip()
 
 def check_and_set_git_credentials():
     email_result = subprocess.run(["git", "config", "user.email"], capture_output=True, text=True)
