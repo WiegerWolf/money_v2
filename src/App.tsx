@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import './App.css'
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema.ts';
@@ -71,6 +71,11 @@ function App() {
     }
   }
 
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await handleDecrypt();
+  }
+
   useEffect(() => {
     if (db) {
       db
@@ -83,13 +88,15 @@ function App() {
   if (!isDecrypted) {
     return (
       <div>
-        <input 
-          type="password" 
-          value={password} 
-          onChange={(e) => setPassword(e.target.value)} 
-          placeholder="Enter password"
-        />
-        <button onClick={handleDecrypt}>Decrypt Database</button>
+        <form onSubmit={handleSubmit}>
+          <input 
+            type="password" 
+            value={password} 
+            onChange={(e) => setPassword(e.target.value)} 
+            placeholder="Enter password"
+          />
+          <button type="submit">Decrypt Database</button>
+        </form>
       </div>
     )
   }
