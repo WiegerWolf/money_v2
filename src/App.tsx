@@ -1,7 +1,9 @@
+// src/App.tsx
 import { useState, useEffect, FormEvent, useRef } from 'react';
 import Dygraph from 'dygraphs';
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema';
+import { DataEntryForm } from './components/DataEntryForm';
 
 const { financialData } = schema;
 
@@ -11,6 +13,7 @@ function App() {
   const [isDecrypted, setIsDecrypted] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<Dygraph | null>(null);
+  const [showForm, setShowForm] = useState(false);
 
   const initializeDb = async (decryptedData: ArrayBuffer) => {
     const SQL = await window.initSqlJs({
@@ -77,17 +80,20 @@ function App() {
     await handleDecrypt();
   }
 
-  useEffect(() => {
-    if (db && isDecrypted && chartRef.current) {
-      db.select().from(financialData).orderBy(financialData.date).then((data) => {
-        const chartData = data.map(row => [
-          new Date(row.date!),
-          row.income,
-          row.worth
-        ]);
+  const loadChartData = async () => {
+    if (db && chartRef.current) {
+      const data = await db.select().from(financialData).orderBy(financialData.date);
+      const chartData = data.map(row => [
+        new Date(row.date!),
+        row.income,
+        row.worth
+      ]);
 
+      if (graphRef.current) {
+        graphRef.current.updateOptions({ file: chartData });
+      } else {
         graphRef.current = new Dygraph(
-          chartRef.current!,
+          chartRef.current,
           chartData,
           {
             labels: ['Date', 'Income', 'Worth'],
@@ -109,10 +115,16 @@ function App() {
               }
             },
             fillGraph: true,
-            height: window.innerHeight -10,
+            height: window.innerHeight - 100,
           }
         );
-      });
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (db && isDecrypted) {
+      loadChartData();
     }
   }, [db, isDecrypted]);
 
@@ -141,7 +153,22 @@ function App() {
   }
 
   return (
-      <div ref={chartRef} className="w-full h-full"></div>
+    <div className="p-4">
+      <div className="mb-4">
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+        >
+          {showForm ? 'Hide Form' : 'Add New Data'}
+        </button>
+      </div>
+      {showForm && db && (
+        <div className="mb-4">
+          <DataEntryForm db={db} onDataAdded={loadChartData} />
+        </div>
+      )}
+      <div ref={chartRef} className="w-full h-[calc(100vh-120px)]"></div>
+    </div>
   );
 }
 

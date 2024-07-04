@@ -108,6 +108,7 @@ if __name__ == "__main__":
         ".vscode",
         "node_modules",
         "prisma/migrations",
+        "public",
         ".next",
     ]
     
