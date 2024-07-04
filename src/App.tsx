@@ -109,8 +109,7 @@ function App() {
               }
             },
             fillGraph: true,
-            width: '100%',
-            height: 400
+            height: window.innerHeight -10,
           }
         );
       });
@@ -126,13 +125,15 @@ function App() {
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
             placeholder="Enter password"
+            required
+            autoFocus={true}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button 
             type="submit" 
             className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            Decrypt Database
+            Enter
           </button>
         </form>
       </div>
@@ -140,10 +141,7 @@ function App() {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Financial Data Chart</h1>
-      <div ref={chartRef} className="w-full h-[400px]"></div>
-    </div>
+      <div ref={chartRef} className="w-full h-full"></div>
   );
 }
 
