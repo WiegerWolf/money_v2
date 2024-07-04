@@ -1,9 +1,9 @@
-import React, { useState, useEffect, FormEvent, useRef } from 'react';
+import { useState, useEffect, FormEvent, useRef } from 'react';
 import Dygraph from 'dygraphs';
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema';
 
-const { users, financialData } = schema;
+const { financialData } = schema;
 
 function App() {
   const [db, setDb] = useState<SQLJsDatabase<typeof schema>>();
@@ -87,7 +87,7 @@ function App() {
         ]);
 
         graphRef.current = new Dygraph(
-          chartRef.current,
+          chartRef.current!,
           chartData,
           {
             labels: ['Date', 'Income', 'Worth'],
