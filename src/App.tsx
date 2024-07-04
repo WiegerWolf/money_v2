@@ -1,5 +1,6 @@
 // src/App.tsx
 import { useState, useEffect, FormEvent, useRef } from 'react';
+import { savePassword, getPassword, clearPassword } from './utils/passwordStorage';
 import Dygraph from 'dygraphs';
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema';
@@ -15,6 +16,7 @@ function App() {
   const chartRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<Dygraph | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [shouldDecrypt, setShouldDecrypt] = useState(false);
 
   const initializeDb = async (decryptedData: ArrayBuffer) => {
     const SQL = await window.initSqlJs({
@@ -52,14 +54,14 @@ function App() {
     try {
       const response = await fetch('/encrypted-sqlite.db');
       const encryptedData = await response.arrayBuffer();
-      
+
       // The first 16 bytes are the salt, the next 12 bytes are the IV
       const salt = encryptedData.slice(0, 16);
       const iv = encryptedData.slice(16, 28);
       const data = encryptedData.slice(28);
 
       const key = await deriveKey(password, salt);
-      
+
       const decryptedContent = await window.crypto.subtle.decrypt(
         {
           name: "AES-GCM",
@@ -73,9 +75,10 @@ function App() {
     } catch (error) {
       console.error('Decryption failed:', error);
       alert('Decryption failed. Please check your password.');
+      setShouldDecrypt(false);  // Reset shouldDecrypt on failure
     }
   }
-  
+
   interface Database {
     session: {
       client: {
@@ -113,7 +116,30 @@ function App() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await handleDecrypt();
+    savePassword(password);
+    setShouldDecrypt(true);
+  }
+
+  useEffect(() => {
+    const storedPassword = getPassword();
+    if (storedPassword) {
+      setPassword(storedPassword);
+      setShouldDecrypt(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (shouldDecrypt && password) {
+      handleDecrypt();
+      setShouldDecrypt(false);
+    }
+  }, [shouldDecrypt, password]);
+
+  const handleLogout = () => {
+    clearPassword();
+    setIsDecrypted(false);
+    setPassword('');
+    setDb(undefined);
   }
 
   const loadChartData = async () => {
@@ -168,17 +194,17 @@ function App() {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <form onSubmit={handleSubmit} className="p-8 bg-white shadow-md rounded-lg">
-          <input 
-            type="password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter password"
             required
             autoFocus={true}
             className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="w-full mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Enter
@@ -202,6 +228,12 @@ function App() {
           className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           Download Encrypted Database
+        </button>
+        <button
+          onClick={handleLogout}
+          className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          Logout
         </button>
       </div>
       {showForm && db && (
