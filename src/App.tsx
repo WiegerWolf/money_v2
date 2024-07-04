@@ -75,6 +75,7 @@ function App() {
       alert('Decryption failed. Please check your password.');
     }
   }
+  
   interface Database {
     session: {
       client: {
