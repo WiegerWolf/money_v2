@@ -4,7 +4,7 @@ import { SQLJsDatabase } from 'drizzle-orm/sql-js';
 import * as schema from '../schema';
 import { TransactionsTable } from './TransactionsTable';
 import { GroupedTransactions } from './GroupedTransactions';
-import { parseData, groupBy } from '../utils/transactionHelpers';
+import { parseData, groupBy, GroupedTransactions as GroupedTransactionsType } from '../utils/transactionHelpers';
 
 interface TransactionAnalysisProps {
   db: SQLJsDatabase<typeof schema>;
@@ -56,8 +56,8 @@ export function TransactionAnalysis({ db, showNotification }: TransactionAnalysi
         <>
           <div className="mb-6">
             <h3 className="text-xl font-semibold mb-2">Totals</h3>
-            <TransactionsTable 
-              headers={['Product', 'sumBuy', 'sumSell', 'sumAll', 'sumAantal', 'returnsRatio']}
+            <TransactionsTable<GroupedTransactionsType>
+              headers={['id', 'name', 'sumBuy', 'sumSell', 'sumAll', 'sumAantal', 'returnsRatio']}
               data={totalsData}
               showHref={true}
             />

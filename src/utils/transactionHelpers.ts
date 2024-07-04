@@ -22,13 +22,13 @@ interface RawTransaction {
     OrderID: string;
   }
   
-  interface Transaction extends RawTransaction {
+  export interface Transaction extends RawTransaction {
     unixtime: number;
     type: 'buy' | 'sell';
     className: string;
   }
   
-  interface GroupedTransactions {
+  export interface GroupedTransactions {
     id: string;
     name: string;
     transactions: Transaction[];
