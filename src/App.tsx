@@ -1,15 +1,16 @@
-import { useState, useEffect, FormEvent } from 'react'
+import React, { useState, useEffect, FormEvent, useRef } from 'react';
+import Dygraph from 'dygraphs';
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
-import * as schema from './schema.ts';
+import * as schema from './schema';
 
-const { users, financialData } = schema
+const { users, financialData } = schema;
 
 function App() {
-  const [db, setDb] = useState<SQLJsDatabase<typeof schema>>()
-  const [userList, setUsers] = useState<typeof users.$inferInsert[]>([])
-  const [financialList, setFinancialData] = useState<typeof financialData.$inferInsert[]>([])
-  const [password, setPassword] = useState('')
-  const [isDecrypted, setIsDecrypted] = useState(false)
+  const [db, setDb] = useState<SQLJsDatabase<typeof schema>>();
+  const [password, setPassword] = useState('');
+  const [isDecrypted, setIsDecrypted] = useState(false);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const graphRef = useRef<Dygraph | null>(null);
 
   const initializeDb = async (decryptedData: ArrayBuffer) => {
     const SQL = await window.initSqlJs({
@@ -77,11 +78,44 @@ function App() {
   }
 
   useEffect(() => {
-    if (db) {
-      db.select().from(users).then(setUsers);
-      db.select().from(financialData).then(setFinancialData);
+    if (db && isDecrypted && chartRef.current) {
+      db.select().from(financialData).orderBy(financialData.date).then((data) => {
+        const chartData = data.map(row => [
+          new Date(row.date!),
+          row.income,
+          row.worth
+        ]);
+
+        graphRef.current = new Dygraph(
+          chartRef.current,
+          chartData,
+          {
+            labels: ['Date', 'Income', 'Worth'],
+            series: {
+              'Income': {
+                axis: 'y2'
+              },
+              'Worth': {
+                axis: 'y2'
+              },
+            },
+            axes: {
+              y: {
+                independentTicks: false
+              },
+              y2: {
+                labelsKMB: true,
+                independentTicks: true
+              }
+            },
+            fillGraph: true,
+            width: '100%',
+            height: 400
+          }
+        );
+      });
     }
-  }, [db]);
+  }, [db, isDecrypted]);
 
   if (!isDecrypted) {
     return (
@@ -107,42 +141,10 @@ function App() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-2xl font-bold mb-4">User List</h2>
-        <ul className="space-y-2">
-          {userList.map(user => (
-            <li key={user.id} className="bg-gray-100 p-2 rounded">
-              {user.name}
-            </li>
-          ))}
-        </ul>
-      </div>
-      
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-4">Financial Data</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr className="bg-gray-200">
-                <th className="px-4 py-2">Date</th>
-                <th className="px-4 py-2">Income</th>
-                <th className="px-4 py-2">Worth</th>
-              </tr>
-            </thead>
-            <tbody>
-              {financialList.map((data, index) => (
-                <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                  <td className="border px-4 py-2">{data.date}</td>
-                  <td className="border px-4 py-2">{data.income !== null ? data.income : 'N/A'}</td>
-                  <td className="border px-4 py-2">{data.worth !== null ? data.worth : 'N/A'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <h1 className="text-2xl font-bold mb-4">Financial Data Chart</h1>
+      <div ref={chartRef} className="w-full h-[400px]"></div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
