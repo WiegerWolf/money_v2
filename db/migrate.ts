@@ -1,13 +1,52 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
-import Database from 'better-sqlite3';
+// ./db/migrate.ts
+import initSqlJs from "sql.js";
+import { drizzle } from "drizzle-orm/sql-js";
+import fs from "fs/promises";
+import * as schema from "../src/schema.ts";
 
-const sqlite = new Database('./sqlite.db');
-const db = drizzle(sqlite);
+async function loadDatabase(path: string) {
+  const SQL = await initSqlJs({
+    locateFile: (file) => `./public/${file}`,
+  });
+
+  let buffer: Buffer | null = null;
+  let shouldInit = false;
+
+  try {
+    buffer = await fs.readFile(path);
+  } catch {
+    shouldInit = true;
+  }
+
+  const database = new SQL.Database(buffer);
+  const db = drizzle(database, { schema });
+
+  async function save() {
+    const exportBuffer = database.export();
+    await fs.writeFile(path, exportBuffer);
+  }
+
+  return { db, save, database, shouldInit };
+}
 
 async function main() {
   console.log('Running migrations...');
-  await migrate(db, { migrationsFolder: '../drizzle' });
+  const { db, save, database, shouldInit } = await loadDatabase("./db/sqlite.db");
+
+  if (shouldInit) {
+    console.log('Initializing database...');
+  }
+
+  const migrationFiles = await fs.readdir('./drizzle');
+  const sqlMigrations = migrationFiles.filter(file => file.endsWith('.sql'));
+
+  for (const migrationFile of sqlMigrations) {
+    console.log(`Applying migration: ${migrationFile}`);
+    const migrationSql = await fs.readFile(`./drizzle/${migrationFile}`, 'utf8');
+    database.exec(migrationSql);
+  }
+
+  await save();
   console.log('Migrations completed');
 }
 

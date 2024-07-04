@@ -3,8 +3,8 @@ import crypto from 'crypto';
 
 const {
     DB_PASSWORD,
-    DB_DECRYPTED_FILE = './sqlite.db',
-    DB_ENCRYPTED_FILE = '../public/encrypted-sqlite.db',
+    DB_DECRYPTED_FILE = './db/sqlite.db',
+    DB_ENCRYPTED_FILE = './public/encrypted-sqlite.db',
 } = process.env;
 
 async function encryptFile(inputFile: fs.PathOrFileDescriptor, outputFile: fs.PathOrFileDescriptor, password: crypto.BinaryLike | undefined) {

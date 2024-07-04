@@ -5,7 +5,7 @@ import * as schema from "../src/schema.ts";
 
 export async function loadDatabase(path: string) {
   const SQL = await initSqlJs({
-    locateFile: (file) => `../public/${file}`,
+    locateFile: (file) => `./public/${file}`,
   });
 
   let buffer: Buffer | null = null;
@@ -28,7 +28,7 @@ export async function loadDatabase(path: string) {
   if (shouldInit) {
     try {
       const initialMigrationSql = await fs.readFile(
-        "../drizzle/0000_luxuriant_johnny_blaze.sql",
+        "./drizzle/0000_luxuriant_johnny_blaze.sql",
         "utf8"
       );
 
@@ -47,7 +47,7 @@ export async function loadDatabase(path: string) {
 
 
 console.log("⌛ Seeding database...");
-const { db, save } = await loadDatabase("./sqlite.db");
+const { db, save } = await loadDatabase("./db/sqlite.db");
 
 // Existing user data
 await db.insert(schema.users).values({ name: "John" });
