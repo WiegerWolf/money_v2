@@ -1,8 +1,10 @@
-// src/components/DataEntryForm.tsx
 import React, { useState } from 'react';
 import { SQLJsDatabase } from 'drizzle-orm/sql-js';
 import * as schema from '../schema';
 import { FiCalendar, FiDollarSign, FiBriefcase } from 'react-icons/fi';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import CurrencyInput from 'react-currency-input-field';
 
 interface DataEntryFormProps {
   db: SQLJsDatabase<typeof schema>;
@@ -11,20 +13,25 @@ interface DataEntryFormProps {
 }
 
 export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFormProps) {
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState<Date | null>(new Date());
   const [income, setIncome] = useState('');
   const [worth, setWorth] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!date) {
+      showNotification('Please select a date.', 'error');
+      return;
+    }
     try {
+      const formattedDate = date.toISOString().split('T')[0];
       await db.insert(schema.financialData).values({
-        date,
-        income: income ? parseFloat(income) : null,
-        worth: worth ? parseFloat(worth) : null,
+        date: formattedDate,
+        income: income ? parseFloat(income.replace(/[^0-9.-]+/g, '')) : null,
+        worth: worth ? parseFloat(worth.replace(/[^0-9.-]+/g, '')) : null,
       });
       onDataAdded();
-      setDate('');
+      setDate(new Date());
       setIncome('');
       setWorth('');
       showNotification('Data added successfully!', 'success');
@@ -40,17 +47,15 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
       <div className="mb-4">
         <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Date</label>
         <div className="relative">
+          <DatePicker
+            selected={date}
+            onChange={(date: Date | null) => setDate(date)}
+            dateFormat="yyyy-MM-dd"
+            className="pl-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          />
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FiCalendar className="text-gray-400" />
           </div>
-          <input
-            type="date"
-            id="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            className="pl-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
-          />
         </div>
       </div>
       <div className="mb-4">
@@ -59,28 +64,32 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FiDollarSign className="text-gray-400" />
           </div>
-          <input
-            type="number"
+          <CurrencyInput
             id="income"
+            name="income"
+            placeholder="Enter income"
             value={income}
-            onChange={(e) => setIncome(e.target.value)}
-            step="0.01"
+            onValueChange={(value) => setIncome(value || '')}
+            prefix="$"
+            decimalsLimit={2}
             className="pl-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
         </div>
       </div>
       <div className="mb-6">
-        <label htmlFor="worth" className="block text-sm font-medium text-gray-700 mb-1">Worth</label>
+        <label htmlFor="worth" className="block text-sm font-medium text-gray-700 mb-1">Net Worth</label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <FiBriefcase className="text-gray-400" />
           </div>
-          <input
-            type="number"
+          <CurrencyInput
             id="worth"
+            name="worth"
+            placeholder="Enter net worth"
             value={worth}
-            onChange={(e) => setWorth(e.target.value)}
-            step="0.01"
+            onValueChange={(value) => setWorth(value || '')}
+            prefix="$"
+            decimalsLimit={2}
             className="pl-10 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
         </div>
