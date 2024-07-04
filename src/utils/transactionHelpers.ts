@@ -1,7 +1,47 @@
 // src/utils/transactionHelpers.ts
 
-export function parseData(data: string[][]): any[] {
-    let parsedData = data.map(row => ({
+interface RawTransaction {
+    Datum: string;
+    Tijd: string;
+    Product: string;
+    ISIN: string;
+    Beurs: string;
+    Uitvoeringsplaats: string;
+    Aantal: number;
+    Koers: number;
+    KoersValuta: string;
+    LokaleWaarde: number;
+    LokaleWaardeValuta: string;
+    Waarde: number;
+    WaardeValuta: string;
+    Wisselkoers: number | null;
+    Transactiekosten: number;
+    TransactiekostenValuta: string;
+    Totaal: number;
+    TotaalValuta: string;
+    OrderID: string;
+  }
+  
+  interface Transaction extends RawTransaction {
+    unixtime: number;
+    type: 'buy' | 'sell';
+    className: string;
+  }
+  
+  interface GroupedTransactions {
+    id: string;
+    name: string;
+    transactions: Transaction[];
+    sumBuy: number;
+    sumSell: number;
+    sumAll: number;
+    sumAantal: number;
+    returnsRatio: number;
+    className: string;
+  }
+  
+  export function parseData(data: string[][]): Transaction[] {
+    let parsedData: RawTransaction[] = data.map(row => ({
       Datum: row[0],
       Tijd: row[1],
       Product: row[2],
@@ -24,18 +64,19 @@ export function parseData(data: string[][]): any[] {
     }));
   
     parsedData = addUnixtime(parsedData);
-    addType(parsedData);
-    return parsedData.sort((a, b) => a.unixtime - b.unixtime);
+    const typedData = addType(parsedData);
+    return typedData.sort((a, b) => a.unixtime - b.unixtime);
   }
   
-  export function groupBy(arr: any[], field: string): any[] {
-    const hash: {[key: string]: any} = {};
+  export function groupBy(arr: Transaction[], field: keyof Transaction): GroupedTransactions[] {
+    const hash: {[key: string]: GroupedTransactions} = {};
     arr.forEach(item => {
-      if (hash[item[field]] === undefined)
-        hash[item[field]] = { id: item[field], name: item.Product, transactions: [] };
-      hash[item[field]].transactions.push(item);
+      const key = item[field] as string;
+      if (hash[key] === undefined)
+        hash[key] = { id: key, name: item.Product, transactions: [], sumBuy: 0, sumSell: 0, sumAll: 0, sumAantal: 0, returnsRatio: 0, className: '' };
+      hash[key].transactions.push(item);
     });
-    const groups = Object.keys(hash).map(key => hash[key]);
+    const groups = Object.values(hash);
     groups.forEach(group => {
       const data = group.transactions;
       group.sumBuy = data.filter(({ type }) => type === 'buy').reduce(sumField('Totaal'), 0);
@@ -48,23 +89,25 @@ export function parseData(data: string[][]): any[] {
     return groups.sort((a, b) => b.returnsRatio - a.returnsRatio);
   }
   
-  function addUnixtime(data: any[]): any[] {
+  function addUnixtime(data: RawTransaction[]): RawTransaction[] {
     return data.map(datum => {
       const [DD, MM, YYYY] = datum.Datum.split('-');
       const [HH, mm] = datum.Tijd.split(':');
-      datum.unixtime = Date.parse(`${YYYY}-${MM}-${DD}T${HH}:${mm}:00`);
-      return datum;
+      return {
+        ...datum,
+        unixtime: Date.parse(`${YYYY}-${MM}-${DD}T${HH}:${mm}:00`)
+      };
     });
   }
   
-  function addType(data: any[]): any[] {
-    return data.map(datum => {
-      datum.type = datum.Aantal > 0 ? "buy" : "sell";
-      datum.className = datum.Aantal > 0 ? "bg-green-100" : "bg-red-100";
-      return datum;
-    });
+  function addType(data: (RawTransaction & { unixtime: number })[]): Transaction[] {
+    return data.map(datum => ({
+      ...datum,
+      type: datum.Aantal > 0 ? "buy" : "sell",
+      className: datum.Aantal > 0 ? "bg-green-100" : "bg-red-100"
+    }));
   }
   
-  function sumField(field: string) {
-    return (sum: number, item: any) => sum + item[field];
+  function sumField(field: keyof Transaction) {
+    return (sum: number, item: Transaction) => sum + item[field];
   }
