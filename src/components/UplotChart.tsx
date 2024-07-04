@@ -1,14 +1,14 @@
 // src/components/UplotChart.tsx
-import React from 'react';
 import UplotReact from 'uplot-react';
+import { Options } from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 
 interface UplotChartProps {
-  data: number[][];
+  data: [number[], number[]]; // Assuming two series: x-axis (time) and y-axis data
 }
 
 export function UplotChart({ data }: UplotChartProps) {
-  const options = {
+  const options: Options = {
     width: 600,
     height: 200,
     series: [
