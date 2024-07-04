@@ -1,5 +1,5 @@
 // src/components/NetWorthGraph.tsx
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { SQLJsDatabase } from 'drizzle-orm/sql-js';
 import * as schema from '../schema';
 import Dygraph from 'dygraphs';
@@ -13,11 +13,7 @@ export function NetWorthGraph({ db, dataVersion }: NetWorthGraphProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const graphRef = useRef<Dygraph | null>(null);
 
-  useEffect(() => {
-    loadChartData();
-  }, [db, dataVersion]);
-
-  const loadChartData = async () => {
+  const loadChartData = useCallback(async () => {
     if (db && chartRef.current) {
       const data = await db.select().from(schema.financialData).orderBy(schema.financialData.date);
       const chartData = data.map(row => [
@@ -61,7 +57,11 @@ export function NetWorthGraph({ db, dataVersion }: NetWorthGraphProps) {
         );
       }
     }
-  };
+  }, [db]);
+
+  useEffect(() => {
+    loadChartData();
+  }, [loadChartData, dataVersion]);
 
   return (
     <div className="bg-white shadow-md rounded-lg p-4">
