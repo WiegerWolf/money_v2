@@ -2,11 +2,12 @@ import { useState, useEffect, FormEvent } from 'react'
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema.ts';
 
-const { users } = schema
+const { users, financialData } = schema
 
 function App() {
   const [db, setDb] = useState<SQLJsDatabase<typeof schema>>()
   const [userList, setUsers] = useState<typeof users.$inferInsert[]>([])
+  const [financialList, setFinancialData] = useState<typeof financialData.$inferInsert[]>([])
   const [password, setPassword] = useState('')
   const [isDecrypted, setIsDecrypted] = useState(false)
 
@@ -77,10 +78,8 @@ function App() {
 
   useEffect(() => {
     if (db) {
-      db
-        .select()
-        .from(users)
-        .then(setUsers);
+      db.select().from(users).then(setUsers);
+      db.select().from(financialData).then(setFinancialData);
     }
   }, [db]);
 
@@ -108,7 +107,7 @@ function App() {
 
   return (
     <div className="container mx-auto p-4">
-      <div className="bg-white shadow-md rounded-lg p-6">
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
         <h2 className="text-2xl font-bold mb-4">User List</h2>
         <ul className="space-y-2">
           {userList.map(user => (
@@ -117,6 +116,30 @@ function App() {
             </li>
           ))}
         </ul>
+      </div>
+      
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <h2 className="text-2xl font-bold mb-4">Financial Data</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full table-auto">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="px-4 py-2">Date</th>
+                <th className="px-4 py-2">Income</th>
+                <th className="px-4 py-2">Worth</th>
+              </tr>
+            </thead>
+            <tbody>
+              {financialList.map((data, index) => (
+                <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                  <td className="border px-4 py-2">{data.date}</td>
+                  <td className="border px-4 py-2">{data.income !== null ? data.income : 'N/A'}</td>
+                  <td className="border px-4 py-2">{data.worth !== null ? data.worth : 'N/A'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   )
