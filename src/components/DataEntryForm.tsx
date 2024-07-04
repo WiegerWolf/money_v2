@@ -35,8 +35,8 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Add Financial Data</h2>
+    <form onSubmit={handleSubmit} className="p-4 bg-white shadow-md rounded-lg">
+      <h2 className="text-xl font-bold mb-4 text-gray-800">Add Financial Data</h2>
       <div className="mb-4">
         <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">Date</label>
         <div className="relative">

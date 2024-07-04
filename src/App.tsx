@@ -1,16 +1,15 @@
 // src/App.tsx
-import { useState, useEffect, FormEvent, useRef } from 'react';
+import React, { useState, useEffect, useRef, FormEvent } from 'react';
 import { savePassword, getPassword, clearPassword } from './utils/passwordStorage';
-import { FiPlusCircle, FiDownload, FiLogOut } from 'react-icons/fi';
-import Dygraph from 'dygraphs';
+import { FiPlusCircle, FiDownload, FiLogOut, FiLock } from 'react-icons/fi';
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema';
 import { DataEntryForm } from './components/DataEntryForm';
 import { encryptDatabase } from './utils/encryption';
 import { Notification } from './components/Notification';
-import { FiLock } from 'react-icons/fi';
-
-const { financialData } = schema;
+import { NetWorthGraph } from './components/NetWorthGraph';
+import { TransactionAnalysis } from './components/TransactionAnalysis';
+import Dygraph from 'dygraphs';
 
 function App() {
   const [db, setDb] = useState<SQLJsDatabase<typeof schema>>();
@@ -154,7 +153,7 @@ function App() {
 
   const loadChartData = async () => {
     if (db && chartRef.current) {
-      const data = await db.select().from(financialData).orderBy(financialData.date);
+      const data = await db.select().from(schema.financialData).orderBy(schema.financialData.date);
       const chartData = data.map(row => [
         new Date(row.date!),
         row.income,
@@ -246,7 +245,7 @@ function App() {
       <div className="mb-4 flex items-center justify-between bg-white shadow-md rounded-lg p-2">
         <div className="flex space-x-2">
           <button
-            onMouseDown={() => setShowForm(!showForm)}
+            onClick={() => setShowForm(!showForm)}
             className="flex items-center px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
           >
             <FiPlusCircle className="mr-2" />
@@ -268,16 +267,23 @@ function App() {
           Logout
         </button>
       </div>
-      {showForm && db && (
-        <div className="mb-4">
-          <DataEntryForm 
-            db={db} 
-            onDataAdded={loadChartData} 
-            showNotification={showNotification}
-          />
+      {db && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
+            {showForm && (
+              <DataEntryForm 
+                db={db} 
+                onDataAdded={loadChartData} 
+                showNotification={showNotification}
+              />
+            )}
+            <NetWorthGraph db={db} />
+            </div>
+          <div>
+            <TransactionAnalysis db={db} showNotification={showNotification} />
+          </div>
         </div>
       )}
-      <div ref={chartRef} className="w-full h-[calc(100vh-120px)]"></div>
       {notification && (
         <Notification
           message={notification.message}
