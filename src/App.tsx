@@ -5,7 +5,6 @@ import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema';
 import { DataEntryForm } from './components/DataEntryForm';
 import { encryptDatabase } from './utils/encryption';
-import { BaseSQLiteDatabase } from 'drizzle-orm/sqlite-core';
 
 const { financialData } = schema;
 
@@ -76,13 +75,19 @@ function App() {
       alert('Decryption failed. Please check your password.');
     }
   }
-
+  interface Database {
+    session: {
+      client: {
+        export(): Uint8Array;
+      };
+    };
+  }
   const handleDownload = async () => {
     if (!db) return;
 
     try {
       // Export the database
-      const exportedData = (db as any).session.client.export();
+      const exportedData = (db as unknown as Database).session.client.export();
 
       // Encrypt the database
       const encryptedData = await encryptDatabase(exportedData, password);
