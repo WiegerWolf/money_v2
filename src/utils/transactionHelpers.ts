@@ -1,14 +1,35 @@
 // src/utils/transactionHelpers.ts
-export function parseData(data) {
-    let parsedData = addUnixtime(data);
-    parsedData = parseNums(parsedData, ['Aantal']);
-    parsedData = parseFloats(parsedData, ['Waarde', 'Transactiekosten en/of', 'Totaal', 'Koers', 'Lokale waarde', 'Wisselkoers']);
+
+export function parseData(data: string[][]): any[] {
+    let parsedData = data.map(row => ({
+      Datum: row[0],
+      Tijd: row[1],
+      Product: row[2],
+      ISIN: row[3],
+      Beurs: row[4],
+      Uitvoeringsplaats: row[5],
+      Aantal: parseFloat(row[6]),
+      Koers: parseFloat(row[7]),
+      KoersValuta: row[8],
+      LokaleWaarde: parseFloat(row[9]),
+      LokaleWaardeValuta: row[10],
+      Waarde: parseFloat(row[11]),
+      WaardeValuta: row[12],
+      Wisselkoers: row[13] ? parseFloat(row[13]) : null,
+      Transactiekosten: parseFloat(row[14]),
+      TransactiekostenValuta: row[15],
+      Totaal: parseFloat(row[16]),
+      TotaalValuta: row[17],
+      OrderID: row[18]
+    }));
+  
+    parsedData = addUnixtime(parsedData);
     addType(parsedData);
     return parsedData.sort((a, b) => a.unixtime - b.unixtime);
   }
   
-  export function groupBy(arr, field) {
-    const hash = {};
+  export function groupBy(arr: any[], field: string): any[] {
+    const hash: {[key: string]: any} = {};
     arr.forEach(item => {
       if (hash[item[field]] === undefined)
         hash[item[field]] = { id: item[field], name: item.Product, transactions: [] };
@@ -27,41 +48,23 @@ export function parseData(data) {
     return groups.sort((a, b) => b.returnsRatio - a.returnsRatio);
   }
   
-  function addUnixtime(data) {
+  function addUnixtime(data: any[]): any[] {
     return data.map(datum => {
-      const [DD, MM, YYYY] = datum[0].split('-');
-      const [HH, mm] = datum[1].split(':');
+      const [DD, MM, YYYY] = datum.Datum.split('-');
+      const [HH, mm] = datum.Tijd.split(':');
       datum.unixtime = Date.parse(`${YYYY}-${MM}-${DD}T${HH}:${mm}:00`);
       return datum;
     });
   }
   
-  function parseNums(data, fields) {
-    return data.map(datum => {
-      fields.forEach(field => {
-        datum[field] = parseInt(datum[field], 10);
-      });
-      return datum;
-    });
-  }
-  
-  function parseFloats(data, fields) {
-    return data.map(datum => {
-      fields.forEach(field => {
-        datum[field] = parseFloat(datum[field]);
-      });
-      return datum;
-    });
-  }
-  
-  function addType(data) {
+  function addType(data: any[]): any[] {
     return data.map(datum => {
       datum.type = datum.Aantal > 0 ? "buy" : "sell";
-      datum.className = datum.Aantal > 0 ? "bg-red-100" : "bg-green-100";
+      datum.className = datum.Aantal > 0 ? "bg-green-100" : "bg-red-100";
       return datum;
     });
   }
   
-  function sumField(field) {
-    return (sum, item) => sum + item[field];
+  function sumField(field: string) {
+    return (sum: number, item: any) => sum + item[field];
   }

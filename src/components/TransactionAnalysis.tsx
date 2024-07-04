@@ -12,8 +12,8 @@ interface TransactionAnalysisProps {
 }
 
 export function TransactionAnalysis({ db, showNotification }: TransactionAnalysisProps) {
-  const [totalsData, setTotalsData] = useState([]);
-  const [groupedByIsin, setGroupedByIsin] = useState([]);
+  const [totalsData, setTotalsData] = useState<any[]>([]);
+  const [groupedByIsin, setGroupedByIsin] = useState<any[]>([]);
   const [dataProcessed, setDataProcessed] = useState(false);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +57,7 @@ export function TransactionAnalysis({ db, showNotification }: TransactionAnalysi
           <div className="mb-6">
             <h3 className="text-xl font-semibold mb-2">Totals</h3>
             <TransactionsTable 
-              headers={Object.keys(totalsData[0]).filter(col => !['className', 'transactions', 'id'].includes(col))}
+              headers={['Product', 'sumBuy', 'sumSell', 'sumAll', 'sumAantal', 'returnsRatio']}
               data={totalsData}
               showHref={true}
             />

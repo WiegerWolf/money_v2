@@ -29,9 +29,9 @@ export function GroupedTransactions({ groupedData }: GroupedTransactionsProps) {
                 <tbody>
                   <tr>
                     <td className="border p-2">{group.sumAantal}</td>
-                    <td className="border p-2">{group.sumBuy}</td>
-                    <td className="border p-2">{group.sumSell}</td>
-                    <td className="border p-2">{group.sumAll}</td>
+                    <td className="border p-2">{group.sumBuy.toFixed(2)}</td>
+                    <td className="border p-2">{group.sumSell.toFixed(2)}</td>
+                    <td className="border p-2">{group.sumAll.toFixed(2)}</td>
                     <td className="border p-2">{group.returnsRatio.toFixed(2)}%</td>
                   </tr>
                 </tbody>
@@ -45,7 +45,7 @@ export function GroupedTransactions({ groupedData }: GroupedTransactionsProps) {
           <div>
             <h5 className="font-semibold mb-2">Transactions</h5>
             <TransactionsTable 
-              headers={Object.keys(group.transactions[0]).filter(col => !['unixtime', 'type', 'ISIN', 'className'].includes(col))}
+              headers={['Datum', 'Tijd', 'Aantal', 'Koers', 'KoersValuta', 'Waarde', 'WaardeValuta', 'Totaal', 'TotaalValuta']}
               data={group.transactions}
             />
           </div>
@@ -55,22 +55,18 @@ export function GroupedTransactions({ groupedData }: GroupedTransactionsProps) {
   );
 }
 
-function convertData(transactions) {
-  return transactions.reduce((memo, { Datum, Tijd, Koers, Aantal }) => {
-    if (memo.holdings === undefined) memo.holdings = 0;
-    memo.holdings += Aantal;
+function convertData(transactions: any[]) {
+  return transactions.reduce((memo: number[][], { Datum, Tijd, Koers, Aantal }) => {
+    if (memo.length === 0) {
+      memo.push([], []);
+    }
 
-    const _dateString = `${Datum.split('-').reverse().join('-')} ${Tijd}`;
+    const _dateString = `${Datum.split('-').reverse().join('-')}T${Tijd}`;
     const _date = Math.floor(Date.parse(_dateString) / 1000);
 
     memo[0].push(_date);
     memo[1].push(Koers);
 
-    if (!memo.holdings) {
-      memo[0].push(_date);
-      memo[1].push(null);
-    }
-
     return memo;
-  }, [[], []]);
+  }, []);
 }
