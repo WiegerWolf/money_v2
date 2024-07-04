@@ -7,8 +7,9 @@
     "dev": "vite --host=0.0.0.0",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "seedDb": "bun ./seedDb.ts",
-    "encryptDb": "bun ./encryptDb.ts",
+    "db:seed": "bun run ./db/seed.ts",
+    "db:migrate": "bun run ./db/migrate.ts",
+    "db:encrypt": "bun run ./db/encrypt.ts",
     "preview": "vite preview"
   },
   "dependencies": {
