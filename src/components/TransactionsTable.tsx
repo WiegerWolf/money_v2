@@ -1,7 +1,7 @@
 // src/components/TransactionsTable.tsx
-import { GroupedTransactions } from '../utils/transactionHelpers';
+import { GroupedTransactions, Transaction } from '../utils/transactionHelpers';
 
-type TableData = GroupedTransactions;
+type TableData = GroupedTransactions | Transaction;
 
 interface TransactionsTableProps<T extends TableData> {
   headers: (keyof T)[];

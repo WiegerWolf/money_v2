@@ -1,5 +1,4 @@
 // src/components/GroupedTransactions.tsx
-import React from 'react';
 import { TransactionsTable } from './TransactionsTable';
 import { UplotChart } from './UplotChart';
 import { GroupedTransactions as GroupedTransactionsType, Transaction } from '../utils/transactionHelpers';

@@ -24,6 +24,7 @@ interface RawTransaction {
   
   export interface Transaction extends RawTransaction {
     unixtime: number;
+    id: string;
     type: 'buy' | 'sell';
     className: string;
   }
@@ -103,19 +104,18 @@ interface RawTransaction {
   function addType(data: (RawTransaction & { unixtime: number })[]): Transaction[] {
     return data.map(datum => ({
       ...datum,
+      id: datum.Datum + datum.Tijd + datum.Aantal,
       type: datum.Aantal > 0 ? "buy" : "sell",
       className: datum.Aantal > 0 ? "bg-green-100" : "bg-red-100"
     }));
   }
   
-  function sumField(field: keyof Transaction) {
+  type NumericFields = {
+    [K in keyof Transaction]: Transaction[K] extends number ? K : never
+  }[keyof Transaction];
+  
+  function sumField(field: NumericFields) {
     return (sum: number, item: Transaction) => {
-      if (item[field] === null) return sum
-      if (item[field] === undefined) return sum
-      if (item[field] === 0) return sum
-      if (typeof item[field] === 'number') return sum + item[field]
-      if (typeof item[field] === 'string')
-        return item[field].trim() === '' ? sum : sum + parseFloat(item[field])
-      return sum + item[field]
+      return sum + (item[field] as number);
     }
   }
