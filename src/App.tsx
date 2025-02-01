@@ -209,7 +209,7 @@ function App() {
             href="https://github.com/WiegerWolf/money_v2"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all hover:scale-105"
+            className="flex items-center px-4 py-2 border-2 border-gray-800 text-gray-800 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all hover:scale-105"
           >
             <FiGithub className="mr-2" />
             GitHub
@@ -223,7 +223,7 @@ function App() {
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all hover:scale-105"
+            className="flex items-center px-4 py-2 border-2 border-red-500 text-red-500 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all hover:scale-105"
           >
             <FiLogOut className="mr-2" />
             Logout
@@ -254,7 +254,11 @@ function App() {
                 <h2 className="text-2xl font-bold">Net Worth</h2>
                 <button
                   onClick={() => setShowForm(!showForm)}
-                  className="flex items-center px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200"
+                  className={`flex items-center px-3 py-2 ${
+                    showForm 
+                      ? 'border-2 border-green-500 text-green-600 hover:bg-green-50' 
+                      : 'bg-green-500 text-white hover:bg-green-600'
+                  } rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200`}
                 >
                   <FiPlusCircle className="mr-2" />
                   {showForm ? 'Hide Form' : 'Add Data'}
