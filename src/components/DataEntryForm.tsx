@@ -70,12 +70,22 @@ export function DataEntryForm({ db, onDataAdded, showNotification, handleDownloa
         worth: calculatedWorth,   // Use evaluated number
       });
       onDataAdded();
+      
+      // Automatically download the database
+      await handleDownload(); // Note: handleDownload in App.tsx is async, so await it here.
+
       setDate(new Date());
       setIncome('');
       setWorth('');
       setDisplayIncome('');
       setDisplayWorth('');
-      showNotification('Data added successfully! Click to download the updated database.', 'success', 'Download DB', handleDownload);
+      // Updated notification message
+      showNotification(
+        'Data added successfully! Database download started. You can also click to download again.',
+        'success',
+        'Download Again', // Changed button text for clarity
+        handleDownload
+      );
     } catch (error) {
       console.error('Error adding data:', error);
       showNotification('Failed to add data. Please try again.', 'error');
