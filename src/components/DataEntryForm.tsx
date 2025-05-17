@@ -84,8 +84,7 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
         </div>
         <div className="mb-4 md:mb-0 md:flex-1">
           <label htmlFor="income" className="block text-sm font-medium text-gray-700 mb-1">Income</label>
-          <div className="relative flex items-center">
-            <span className="absolute left-3 text-gray-400">$</span>
+          <div className="relative">
             <input
               type="text"
               id="income"
@@ -94,14 +93,16 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
               value={income}
               onChange={(e) => setIncome(e.target.value)}
               onBlur={() => handleBlur('income', income)}
-              className="pl-8 pr-3 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              className="pl-10 pr-3 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
             />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiDollarSign className="text-gray-400" />
+            </div>
           </div>
         </div>
         <div className="mb-6 md:mb-0 md:flex-1">
           <label htmlFor="worth" className="block text-sm font-medium text-gray-700 mb-1">Net Worth</label>
-          <div className="relative flex items-center">
-            <span className="absolute left-3 text-gray-400">$</span>
+          <div className="relative">
             <input
               type="text"
               id="worth"
@@ -110,8 +111,11 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
               value={worth}
               onChange={(e) => setWorth(e.target.value)}
               onBlur={() => handleBlur('worth', worth)}
-              className="pl-8 pr-3 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+              className="pl-10 pr-3 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
             />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FiBriefcase className="text-gray-400" />
+            </div>
           </div>
         </div>
         <div className="md:ml-4">
