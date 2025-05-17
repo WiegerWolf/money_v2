@@ -7,13 +7,14 @@ import 'react-datepicker/dist/react-datepicker.css';
 // import CurrencyInput from 'react-currency-input-field'; // Removed as per plan
 import { evaluateMathExpression } from '../utils/transactionHelpers';
 
-interface DataEntryFormProps {
+export interface DataEntryFormProps { // Exporting for use in App.tsx if needed for stricter typing
   db: SQLJsDatabase<typeof schema>;
   onDataAdded: () => void;
-  showNotification: (message: string, type: 'success' | 'error') => void;
+  showNotification: (message: string, type: 'success' | 'error', actionText?: string, onAction?: () => void) => void;
+  handleDownload: () => Promise<void>; // Add handleDownload prop
 }
 
-export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFormProps) {
+export function DataEntryForm({ db, onDataAdded, showNotification, handleDownload }: DataEntryFormProps) {
   const [date, setDate] = useState<Date | null>(new Date());
   const [income, setIncome] = useState(''); // Stores raw string input
   const [worth, setWorth] = useState(''); // Stores raw string input
@@ -74,7 +75,7 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
       setWorth('');
       setDisplayIncome('');
       setDisplayWorth('');
-      showNotification('Data added successfully! Remember to update the DB in the repository.', 'success');
+      showNotification('Data added successfully! Click to download the updated database.', 'success', 'Download DB', handleDownload);
     } catch (error) {
       console.error('Error adding data:', error);
       showNotification('Failed to add data. Please try again.', 'error');
