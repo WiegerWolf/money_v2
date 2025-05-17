@@ -127,7 +127,7 @@ export function evaluateMathExpression(expression: string): number | null {
   }
   try {
     const result = evaluate(expression);
-    if (typeof result === 'number' &amp;&amp; !isNaN(result)) {
+    if (typeof result === 'number' && !isNaN(result)) {
       return result;
     }
     return null;
