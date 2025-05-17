@@ -17,14 +17,29 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
   const [date, setDate] = useState<Date | null>(new Date());
   const [income, setIncome] = useState(''); // Stores raw string input
   const [worth, setWorth] = useState(''); // Stores raw string input
+  const [displayIncome, setDisplayIncome] = useState('');
+  const [displayWorth, setDisplayWorth] = useState('');
 
-  const handleBlur = (field: 'income' | 'worth', value: string) => {
+  const handleBlur = (field: 'income' | 'worth') => {
+    const value = field === 'income' ? income : worth;
     const result = evaluateMathExpression(value);
+
     if (value.trim() !== '' && result === null) {
       showNotification(`Invalid expression in ${field} field.`, 'error');
+      // Keep displaying the invalid raw expression
+      if (field === 'income') setDisplayIncome(value);
+      else setDisplayWorth(value);
+    } else if (result !== null) {
+      const formattedResult = result.toString(); // Or result.toFixed(2) if needed
+      if (field === 'income') {
+        setDisplayIncome(formattedResult);
+      } else {
+        setDisplayWorth(formattedResult);
+      }
+    } else { // Empty input or other cases
+      if (field === 'income') setDisplayIncome('');
+      else setDisplayWorth('');
     }
-    // Optionally, update a display state here if needed
-    // For now, the input field continues to show the raw expression
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,6 +72,8 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
       setDate(new Date());
       setIncome('');
       setWorth('');
+      setDisplayIncome('');
+      setDisplayWorth('');
       showNotification('Data added successfully! Remember to update the DB in the repository.', 'success');
     } catch (error) {
       console.error('Error adding data:', error);
@@ -90,9 +107,13 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
               id="income"
               name="income"
               placeholder="Enter income (e.g., 150+25)"
-              value={income}
-              onChange={(e) => setIncome(e.target.value)}
-              onBlur={() => handleBlur('income', income)}
+              value={displayIncome}
+              onChange={(e) => {
+                setIncome(e.target.value);
+                setDisplayIncome(e.target.value);
+              }}
+              onBlur={() => handleBlur('income')}
+              onFocus={() => setDisplayIncome(income)}
               className="pl-10 pr-3 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -108,9 +129,13 @@ export function DataEntryForm({ db, onDataAdded, showNotification }: DataEntryFo
               id="worth"
               name="worth"
               placeholder="Enter net worth (e.g., 1000*1.05)"
-              value={worth}
-              onChange={(e) => setWorth(e.target.value)}
-              onBlur={() => handleBlur('worth', worth)}
+              value={displayWorth}
+              onChange={(e) => {
+                setWorth(e.target.value);
+                setDisplayWorth(e.target.value);
+              }}
+              onBlur={() => handleBlur('worth')}
+              onFocus={() => setDisplayWorth(worth)}
               className="pl-10 pr-3 py-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
