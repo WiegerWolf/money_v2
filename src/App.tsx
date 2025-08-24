@@ -232,10 +232,19 @@ function App() {
 
   return (
     <div className="p-4 bg-gray-50 min-h-screen">
-      <div className="mb-4 flex flex-col sm:flex-row items-center justify-between bg-white shadow-lg rounded-lg p-4">
-        <div className="flex items-center mb-4 sm:mb-0">
-          <img src="/broccori.png" alt="Broccori Logo" className="h-8 w-8 mr-2" />
-          <div className="flex items-center">
+      <div className="mb-4 flex flex-col sm:flex-row items-center justify-between bg-white shadow-lg rounded-lg p-6 relative overflow-visible">
+        <div className="flex items-center mb-4 sm:mb-0 relative">
+          {/* Logo: larger, centered vertically with header content */}
+          <div className="absolute -left-1 -bottom-6">
+            <img
+              src="/broccori.png"
+              alt="Broccori Logo"
+              className="h-32 object-contain"
+            />
+          </div>
+
+          {/* add left offset so text doesn't sit under the absolute logo */}
+          <div className="ml-32 flex items-center">
             <div>
               <h1 className="block text-3xl font-bold text-gray-900">
                 ファイナンシャル ブロッコリー
