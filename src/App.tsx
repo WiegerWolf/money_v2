@@ -1,7 +1,7 @@
 // src/App.tsx
-import { useState, useEffect, FormEvent, useCallback } from 'react';
+import { useState, useEffect, FormEvent, useCallback, useRef } from 'react';
 import { savePassword, getPassword, clearPassword } from './utils/passwordStorage';
-import { FiPlusCircle, FiDownload, FiLogOut, FiLock, FiDollarSign, FiList, FiGithub } from 'react-icons/fi';
+import { FiPlusCircle, FiDownload, FiLogOut, FiLock, FiDollarSign, FiList, FiGithub, FiVolume2 } from 'react-icons/fi';
 import { SQLJsDatabase, drizzle } from 'drizzle-orm/sql-js';
 import * as schema from './schema';
 import { DataEntryForm } from './components/DataEntryForm';
@@ -26,6 +26,37 @@ function App() {
     setNotification({ message, type, actionText, onAction });
     setTimeout(() => setNotification(null), 5000); // Auto-dismiss after 5 seconds
   }, []);
+
+  // Audio for pronunciation (persisted across renders)
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => {
+    audioRef.current = new Audio('/broccori.mp3');
+    audioRef.current.preload = 'auto';
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Play pronunciation and handle errors via notifications
+  const playPronunciation = useCallback(async () => {
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio('/broccori.mp3');
+        audioRef.current.preload = 'auto';
+      }
+      audioRef.current.currentTime = 0;
+      await audioRef.current.play();
+      // Optionally show a brief success notification:
+      // showNotification('Playing pronunciation', 'success');
+    } catch (err) {
+      console.error('Audio playback failed', err);
+      showNotification('Unable to play pronunciation', 'error');
+    }
+  }, [showNotification]);
 
   const initializeDb = useCallback(async (decryptedData: ArrayBuffer) => {
     const SQL = await window.initSqlJs({
@@ -204,13 +235,24 @@ function App() {
       <div className="mb-4 flex flex-col sm:flex-row items-center justify-between bg-white shadow-lg rounded-lg p-4">
         <div className="flex items-center mb-4 sm:mb-0">
           <img src="/broccori.png" alt="Broccori Logo" className="h-8 w-8 mr-2" />
-          <div>
-            <h1 className="block text-3xl font-bold text-gray-900">
-              ファイナンシャル ブロッコリー
-            </h1>
-            <span className="block text-sm text-gray-500 mt-1">
-              [Fah-ee-nah-n-shah-ru Bu-ro-kko-ree]
-            </span>
+          <div className="flex items-center">
+            <div>
+              <h1 className="block text-3xl font-bold text-gray-900">
+                ファイナンシャル ブロッコリー
+              </h1>
+              <div className="flex items-center">
+                <span className="block text-sm text-gray-500 mt-1 mr-2">
+                  [Fah-ee-nah-n-shah-ru Bu-ro-kko-ree]
+                </span>
+                <button
+                  onClick={playPronunciation}
+                  aria-label="Play pronunciation"
+                  className="p-1 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-colors"
+                >
+                  <FiVolume2 className="h-5 w-5 text-gray-600" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
