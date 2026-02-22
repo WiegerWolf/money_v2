@@ -11,6 +11,7 @@ import { NetWorthGraph } from './components/NetWorthGraph';
 import { TransactionAnalysis } from './components/TransactionAnalysis';
 
 function App() {
+  const assetBaseUrl = import.meta.env.BASE_URL;
   const [db, setDb] = useState<SQLJsDatabase<typeof schema>>();
   const [password, setPassword] = useState('');
   const [isDecrypted, setIsDecrypted] = useState(false); // Tracks if the database is currently decrypted and accessible
@@ -30,7 +31,7 @@ function App() {
   // Audio for pronunciation (persisted across renders)
   const audioRef = useRef<HTMLAudioElement | null>(null);
   useEffect(() => {
-    audioRef.current = new Audio('/broccori.mp3');
+    audioRef.current = new Audio(`${assetBaseUrl}broccori.mp3`);
     audioRef.current.preload = 'auto';
     return () => {
       if (audioRef.current) {
@@ -45,7 +46,7 @@ function App() {
   const playPronunciation = useCallback(async () => {
     try {
       if (!audioRef.current) {
-        audioRef.current = new Audio('/broccori.mp3');
+        audioRef.current = new Audio(`${assetBaseUrl}broccori.mp3`);
         audioRef.current.preload = 'auto';
       }
       audioRef.current.currentTime = 0;
@@ -60,12 +61,12 @@ function App() {
 
   const initializeDb = useCallback(async (decryptedData: ArrayBuffer) => {
     const SQL = await window.initSqlJs({
-      locateFile: (file: string) => `/${file}`,
+      locateFile: (file: string) => `${assetBaseUrl}${file}`,
     });
     const sqldb = new SQL.Database(new Uint8Array(decryptedData));
     setDb(drizzle(sqldb, { schema }));
     setIsDecrypted(true);
-  }, []);
+  }, [assetBaseUrl]);
 
   const deriveKey = useCallback(async (password: string, salt: ArrayBuffer) => {
     const enc = new TextEncoder();
@@ -92,7 +93,7 @@ function App() {
 
   const handleDecrypt = useCallback(async () => {
     try {
-      const response = await fetch('/encrypted-sqlite.db');
+      const response = await fetch(`${assetBaseUrl}encrypted-sqlite.db`);
       const encryptedData = await response.arrayBuffer();
 
       // The first 16 bytes are the salt, the next 12 bytes are the IV
@@ -118,7 +119,7 @@ function App() {
       showNotification('Decryption failed. Please check your password.', 'error');
       setShouldDecrypt(false);
     }
-  }, [password, showNotification, initializeDb, deriveKey]);
+  }, [password, showNotification, initializeDb, deriveKey, assetBaseUrl]);
 
   interface Database {
     session: {
@@ -237,7 +238,7 @@ function App() {
           {/* Logo: larger, centered vertically with header content */}
           <div className="absolute -left-1 -bottom-6">
             <img
-              src="/broccori.png"
+              src={`${assetBaseUrl}broccori.png`}
               alt="Broccori Logo"
               className="h-32 object-contain"
             />
